@@ -54,8 +54,6 @@ type Language struct {
 // Detection represents a language detection result
 type Detection struct {
 	Path                   string    `json:"path,omitempty"`
-	Loc                    int       `json:"loc,omitempty"`
-	Sloc                   int       `json:"sloc,omitempty"`
 	Type                   string    `json:"type,omitempty"`
 	ExtName                string    `json:"extname,omitempty"`
 	MimeType               string    `json:"mime_type,omitempty"`
@@ -203,12 +201,12 @@ func checkPreoptimizationCache(filename string) Result {
 	mutex.Lock()
 	for _, p := range preoptimizations {
 		if p.Pattern.MatchString(filename) {
+			// make a copy so that the result can't be mutated
+			l := Language(*p.Result.Result.Language)
 			result := Result{
 				Success: true,
 				Result: &Detection{
 					Path:                   filename,
-					Sloc:                   0,
-					Loc:                    0,
 					Type:                   p.Result.Result.Type,
 					ExtName:                p.Result.Result.ExtName,
 					MimeType:               p.Result.Result.MimeType,
@@ -224,7 +222,7 @@ func checkPreoptimizationCache(filename string) Result {
 					IsHighRatioOfLongLines: p.Result.Result.IsHighRatioOfLongLines,
 					IsViewable:             p.Result.Result.IsViewable,
 					IsSafeToColorize:       p.Result.Result.IsSafeToColorize,
-					Language:               p.Result.Result.Language,
+					Language:               &l,
 				},
 				IsBinary:   p.Result.Result.IsBinary,
 				IsLarge:    p.Result.Result.IsLarge,
@@ -298,7 +296,8 @@ func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, 
 	}
 	if result.Success {
 		if len(result.Results) > 0 {
-			detection := result.Results[0]
+			// make a copy so that the result can't be mutated
+			detection := Detection(result.Results[0])
 			return Result{Success: true, Message: result.Message, Result: &detection, IsBinary: detection.IsBinary, IsLarge: detection.IsLarge, IsExcluded: detection.IsBinary}, nil
 		}
 		return Result{Success: true, Message: result.Message, IsExcluded: true}, nil
