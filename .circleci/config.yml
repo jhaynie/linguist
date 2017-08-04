@@ -10,6 +10,10 @@ jobs:
       - image: pinpt/linguist
 
     working_directory: /go/src/github.com/jhaynie/linguist
+
+    environment:
+      PP_LINGUIST_URL: https://localhost:25032
+
     steps:
       - checkout
       - run: go test -v -bench=. -test.benchmem
