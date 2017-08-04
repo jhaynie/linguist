@@ -76,6 +76,16 @@ type Detection struct {
 
 // Result is the result details of a detection
 type Result struct {
+	Success    bool       `json:"success"`
+	Message    string     `json:"message,omitempty"`
+	Result     *Detection `json:"result"`
+	IsBinary   bool       `json:"binary"`
+	IsLarge    bool       `json:"large"`
+	IsExcluded bool       `json:"excluded"`
+}
+
+// LResult is the result that comes back from linguist
+type LResult struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message,omitempty"`
 	Results []Detection `json:"results"`
@@ -97,8 +107,9 @@ var (
 		TLSHandshakeTimeout: 5 * time.Second,
 		MaxIdleConnsPerHost: 50,
 	}
-	client = &http.Client{Transport: transport, Timeout: time.Second * 30}
-	mutex  = sync.Mutex{}
+	client   = &http.Client{Transport: transport, Timeout: time.Second * 30}
+	mutex    = sync.Mutex{}
+	noResult = Result{}
 )
 
 func preoptimize(re string, filename string, body string) {
@@ -136,7 +147,7 @@ func MostPopular() Detection {
 	// for i, r := range preoptimizations {
 	// 	fmt.Printf("%d %d %v\n", i, r.CacheHits, r.Result.Results[0].Language.Name)
 	// }
-	return preoptimizations[0].Result.Results[0]
+	return *preoptimizations[0].Result.Result
 }
 
 // Initialize will warm up the preoptimization cache
@@ -192,26 +203,48 @@ func checkPreoptimizationCache(filename string) Result {
 	mutex.Lock()
 	for _, p := range preoptimizations {
 		if p.Pattern.MatchString(filename) {
-			p.Result.Results[0].Path = filename
-			p.Result.Results[0].Sloc = 0
-			p.Result.Results[0].Loc = 0
+			result := Result{
+				Success: true,
+				Result: &Detection{
+					Path:                   filename,
+					Sloc:                   0,
+					Loc:                    0,
+					Type:                   p.Result.Result.Type,
+					ExtName:                p.Result.Result.ExtName,
+					MimeType:               p.Result.Result.MimeType,
+					ContentType:            p.Result.Result.ContentType,
+					Disposition:            p.Result.Result.Disposition,
+					IsDocumentation:        p.Result.Result.IsDocumentation,
+					IsLarge:                p.Result.Result.IsLarge,
+					IsGenerated:            p.Result.Result.IsGenerated,
+					IsText:                 p.Result.Result.IsText,
+					IsImage:                p.Result.Result.IsImage,
+					IsBinary:               p.Result.Result.IsBinary,
+					IsVendored:             p.Result.Result.IsVendored,
+					IsHighRatioOfLongLines: p.Result.Result.IsHighRatioOfLongLines,
+					IsViewable:             p.Result.Result.IsViewable,
+					IsSafeToColorize:       p.Result.Result.IsSafeToColorize,
+					Language:               p.Result.Result.Language,
+				},
+				IsBinary:   p.Result.Result.IsBinary,
+				IsLarge:    p.Result.Result.IsLarge,
+				IsExcluded: p.Result.Result.IsBinary,
+			}
 			atomic.AddInt32(&p.CacheHits, 1)
 			mutex.Unlock()
-			return p.Result
+			return result
 		}
 	}
 	mutex.Unlock()
-	return Result{Success: false}
+	return noResult
 }
 
 var concurrent int32
 
-var noResult = Result{true, "", nil}
-
 // GetLanguageDetails returns the linguist results for a given file
 func GetLanguageDetails(ctx context.Context, filename string, body []byte) (Result, error) {
-	if isExcluded(filename, body) {
-		return noResult, nil
+	if ex, r := isExcluded(filename, body); ex {
+		return *r, nil
 	}
 	if preop := checkPreoptimizationCache(filename); preop.Success {
 		hits := atomic.AddInt32(&cacheHits, 1)
@@ -221,13 +254,7 @@ func GetLanguageDetails(ctx context.Context, filename string, body []byte) (Resu
 		if hits%100 == 0 {
 			resort()
 		}
-		// since we mutate this from a separate thread we need to make a copy
-		// so that we can return and not have a race when the caller accesses
-		c := make([]Detection, len(preop.Results))
-		mutex.Lock()
-		copy(c, preop.Results)
-		mutex.Unlock()
-		return Result{Success: true, Results: c}, nil
+		return preop, nil
 	}
 	// count := atomic.AddInt32(&concurrent, 1)
 	atomic.AddInt32(&concurrent, 1)
@@ -237,24 +264,16 @@ func GetLanguageDetails(ctx context.Context, filename string, body []byte) (Resu
 	if result.Success {
 		atomic.AddInt32(&cacheMisses, 1)
 	}
-	// since we mutate this from a separate thread we need to make a copy
-	// so that we can return and not have a race when the caller accesses
-	c := make([]Detection, len(result.Results))
-	mutex.Lock()
-	copy(c, result.Results)
-	mutex.Unlock()
-	return Result{Success: result.Success, Results: c, Message: result.Message}, err
+	return result, err
 }
-
-var failed = Result{Success: false}
 
 func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, attempts int) (Result, error) {
 	if attempts > 10 {
-		return failed, fmt.Errorf("error attempting to load %s after %d attempts", url, attempts)
+		return noResult, fmt.Errorf("error attempting to load %s after %d attempts", url, attempts)
 	}
 	_req, err := http.NewRequest("POST", url, strings.NewReader(jsonbuf))
 	if err != nil {
-		return failed, err
+		return noResult, err
 	}
 	req := _req.WithContext(ctx)
 	if authtoken != "" {
@@ -267,20 +286,24 @@ func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, 
 			time.Sleep(time.Millisecond * time.Duration(50*attempts+1))
 			return attempt(ctx, jsonbuf, url, authtoken, attempts+1)
 		}
-		return failed, err
+		return noResult, err
 	}
 	defer resp.Body.Close()
-	result := Result{}
+	result := LResult{}
 	d := json.NewDecoder(resp.Body)
 	d.UseNumber() // prevent numbers from getting converted
 	err = d.Decode(&result)
 	if err != nil {
-		return failed, err
+		return noResult, err
 	}
 	if result.Success {
-		return result, nil
+		if len(result.Results) > 0 {
+			detection := result.Results[0]
+			return Result{Success: true, Message: result.Message, Result: &detection, IsBinary: detection.IsBinary, IsLarge: detection.IsLarge, IsExcluded: detection.IsBinary}, nil
+		}
+		return Result{Success: true, Message: result.Message, IsExcluded: true}, nil
 	}
-	return failed, errors.New(result.Message)
+	return noResult, errors.New(result.Message)
 }
 
 func isLikelyBinary(body []byte) bool {
@@ -304,91 +327,101 @@ func isLargeBuffer(body []byte) bool {
 	return len(body) > maxBufferSize
 }
 
-var excludeExtensions = map[string]bool{
-	".swp":           true,
-	".DS_Store":      true,
-	".winmd":         true,
-	".node":          true,
-	".dll":           true,
-	".a":             true,
-	".lib":           true,
-	".dylib":         true,
-	".exe":           true,
-	".gif":           true,
-	".png":           true,
-	".webp":          true,
-	".svg":           true,
-	".sketch":        true,
-	".eps":           true,
-	".pdf":           true,
-	".psd":           true,
-	".tif":           true,
-	".tiff":          true,
-	".bmp":           true,
-	".ico":           true,
-	".raw":           true,
-	".wav":           true,
-	".mpg":           true,
-	".mpeg":          true,
-	".mp3":           true,
-	".mp4":           true,
-	".3gp":           true,
-	".aac":           true,
-	".m4a":           true,
-	".ogg":           true,
-	".wma":           true,
-	".avi":           true,
-	".ppt":           true,
-	".doc":           true,
-	".docx":          true,
-	".zip":           true,
-	".zipx":          true,
-	".cab":           true,
-	".7z":            true,
-	".bkf":           true,
-	".dmg":           true,
-	".lz":            true,
-	".rar":           true,
-	".iso":           true,
-	".lzma":          true,
-	".tar":           true,
-	".tgz":           true,
-	".bz2":           true,
-	".gz":            true,
-	".gzip":          true,
-	".jar":           true,
-	".ear":           true,
-	".aar":           true,
-	".class":         true,
-	".pbxproj":       true,
-	".xcworkspace":   true,
-	".nib":           true,
-	".xib":           true,
-	".plist":         true,
-	".pyc":           true,
-	".gitignore":     true,
-	".gitmodules":    true,
-	".gitattributes": true,
-	".npmignore":     true,
-	".lock":          true,
-	".npmrc":         true,
-}
-
-var excludedFilenames = map[string]bool{
-	"npm-debug.log": true,
-	"LICENSE":       true,
-	"LICENSE.md":    true,
-}
-
 func isFilenameExcluded(name string) bool {
 	return excludedFilenames[filepath.Base(name)] || excludeExtensions[filepath.Ext(name)]
 }
 
-func isExcluded(filename string, body []byte) bool {
-	if isLikelyBinary(body) || isLargeBuffer(body) || isFilenameExcluded(filename) {
-		return true
+var (
+	excludeExtensions = map[string]bool{
+		".swp":           true,
+		".DS_Store":      true,
+		".winmd":         true,
+		".node":          true,
+		".dll":           true,
+		".a":             true,
+		".lib":           true,
+		".dylib":         true,
+		".exe":           true,
+		".gif":           true,
+		".png":           true,
+		".webp":          true,
+		".svg":           true,
+		".sketch":        true,
+		".eps":           true,
+		".pdf":           true,
+		".psd":           true,
+		".tif":           true,
+		".tiff":          true,
+		".bmp":           true,
+		".ico":           true,
+		".raw":           true,
+		".wav":           true,
+		".mpg":           true,
+		".mpeg":          true,
+		".mp3":           true,
+		".mp4":           true,
+		".3gp":           true,
+		".aac":           true,
+		".m4a":           true,
+		".ogg":           true,
+		".wma":           true,
+		".avi":           true,
+		".ppt":           true,
+		".doc":           true,
+		".docx":          true,
+		".zip":           true,
+		".zipx":          true,
+		".cab":           true,
+		".7z":            true,
+		".bkf":           true,
+		".dmg":           true,
+		".lz":            true,
+		".rar":           true,
+		".iso":           true,
+		".lzma":          true,
+		".tar":           true,
+		".tgz":           true,
+		".bz2":           true,
+		".gz":            true,
+		".gzip":          true,
+		".jar":           true,
+		".ear":           true,
+		".aar":           true,
+		".class":         true,
+		".pbxproj":       true,
+		".xcworkspace":   true,
+		".nib":           true,
+		".xib":           true,
+		".plist":         true,
+		".pyc":           true,
+		".gitignore":     true,
+		".gitmodules":    true,
+		".gitattributes": true,
+		".npmignore":     true,
+		".lock":          true,
+		".npmrc":         true,
 	}
-	return false
+	excludedFilenames = map[string]bool{
+		"npm-debug.log": true,
+		"LICENSE":       true,
+		"LICENSE.md":    true,
+	}
+	binaryResult   = &Result{true, "", nil, true, false, true}
+	largeResult    = &Result{true, "", nil, false, true, true}
+	excludedResult = &Result{true, "", nil, false, false, true}
+)
+
+func isExcluded(filename string, body []byte) (bool, *Result) {
+	if isLikelyBinary(body) {
+		return true, binaryResult
+	}
+	if isLargeBuffer(body) {
+		return true, largeResult
+	}
+	if isFilenameExcluded(filename) {
+		return true, excludedResult
+	}
+	return false, nil
 }
 
 func getLanguageDetails(ctx context.Context, filename string, body []byte) (Result, error) {

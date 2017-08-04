@@ -22,24 +22,23 @@ func TestLanguageOptimizationsJavaScript(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.js" {
-		t.Fatalf("expected Path to be foo.js, was %s", l.Path)
+	if r.Result.Path != "foo.js" {
+		t.Fatalf("expected Path to be foo.js, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "JavaScript" {
-		t.Fatalf("expected Language.Name to be JavaScript, was %v", l.Language.Name)
+	if r.Result.Language.Name != "JavaScript" {
+		t.Fatalf("expected Language.Name to be JavaScript, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -51,24 +50,23 @@ func TestLanguageOptimizationsGolang(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.go" {
-		t.Fatalf("expected Path to be foo.go, was %s", l.Path)
+	if r.Result.Path != "foo.go" {
+		t.Fatalf("expected Path to be foo.go, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Go" {
-		t.Fatalf("expected Language.Name to be Go, was %v", l.Language.Name)
+	if r.Result.Language.Name != "Go" {
+		t.Fatalf("expected Language.Name to be Go, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -80,24 +78,23 @@ func TestLanguageOptimizationsSwift(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.swift" {
-		t.Fatalf("expected Path to be foo.swift, was %s", l.Path)
+	if r.Result.Path != "foo.swift" {
+		t.Fatalf("expected Path to be foo.swift, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Swift" {
-		t.Fatalf("expected Language.Name to be Swift, was %v", l.Language.Name)
+	if r.Result.Language.Name != "Swift" {
+		t.Fatalf("expected Language.Name to be Swift, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -109,24 +106,23 @@ func TestLanguageOptimizationsMakefile(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "Makefile" {
-		t.Fatalf("expected Path to be Makefile, was %s", l.Path)
+	if r.Result.Path != "Makefile" {
+		t.Fatalf("expected Path to be Makefile, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Makefile" {
-		t.Fatalf("expected Language.Name to be Makefile, was %v", l.Language.Name)
+	if r.Result.Language.Name != "Makefile" {
+		t.Fatalf("expected Language.Name to be Makefile, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -138,24 +134,23 @@ func TestLanguageOptimizationsJSON(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.json" {
-		t.Fatalf("expected Path to be foo.json, was %s", l.Path)
+	if r.Result.Path != "foo.json" {
+		t.Fatalf("expected Path to be foo.json, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "JSON" {
-		t.Fatalf("expected Language.Name to be JSON, was %v", l.Language.Name)
+	if r.Result.Language.Name != "JSON" {
+		t.Fatalf("expected Language.Name to be JSON, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -167,24 +162,23 @@ func TestLanguageOptimizationsYaml(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.yaml" {
-		t.Fatalf("expected Path to be foo.yaml, was %s", l.Path)
+	if r.Result.Path != "foo.yaml" {
+		t.Fatalf("expected Path to be foo.yaml, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "YAML" {
-		t.Fatalf("expected Language.Name to be YAML, was %v", l.Language.Name)
+	if r.Result.Language.Name != "YAML" {
+		t.Fatalf("expected Language.Name to be YAML, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -196,24 +190,23 @@ func TestLanguageOptimizationsYaml2(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.yml" {
-		t.Fatalf("expected Path to be foo.yml, was %s", l.Path)
+	if r.Result.Path != "foo.yml" {
+		t.Fatalf("expected Path to be foo.yml, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "YAML" {
-		t.Fatalf("expected Language.Name to be YAML, was %v", l.Language.Name)
+	if r.Result.Language.Name != "YAML" {
+		t.Fatalf("expected Language.Name to be YAML, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -225,24 +218,23 @@ func TestLanguageOptimizationsEJS(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.ejs" {
-		t.Fatalf("expected Path to be foo.ejs, was %s", l.Path)
+	if r.Result.Path != "foo.ejs" {
+		t.Fatalf("expected Path to be foo.ejs, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "EJS" {
-		t.Fatalf("expected Language.Name to be EJS, was %v", l.Language.Name)
+	if r.Result.Language.Name != "EJS" {
+		t.Fatalf("expected Language.Name to be EJS, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -254,24 +246,23 @@ func TestLanguageOptimizationsHTML(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.html" {
-		t.Fatalf("expected Path to be foo.html, was %s", l.Path)
+	if r.Result.Path != "foo.html" {
+		t.Fatalf("expected Path to be foo.html, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "HTML" {
-		t.Fatalf("expected Language.Name to be HTML, was %v", l.Language.Name)
+	if r.Result.Language.Name != "HTML" {
+		t.Fatalf("expected Language.Name to be HTML, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -283,24 +274,23 @@ func TestLanguageOptimizationsCSS(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.css" {
-		t.Fatalf("expected Path to be foo.css, was %s", l.Path)
+	if r.Result.Path != "foo.css" {
+		t.Fatalf("expected Path to be foo.css, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "CSS" {
-		t.Fatalf("expected Language.Name to be CSS, was %v", l.Language.Name)
+	if r.Result.Language.Name != "CSS" {
+		t.Fatalf("expected Language.Name to be CSS, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -312,24 +302,23 @@ func TestLanguageOptimizationsSCSS(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.scss" {
-		t.Fatalf("expected Path to be foo.scss, was %s", l.Path)
+	if r.Result.Path != "foo.scss" {
+		t.Fatalf("expected Path to be foo.scss, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "SCSS" {
-		t.Fatalf("expected Language.Name to be SCSS, was %v", l.Language.Name)
+	if r.Result.Language.Name != "SCSS" {
+		t.Fatalf("expected Language.Name to be SCSS, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -341,24 +330,23 @@ func TestLanguageOptimizationsMarkdown(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.md" {
-		t.Fatalf("expected Path to be foo.md, was %s", l.Path)
+	if r.Result.Path != "foo.md" {
+		t.Fatalf("expected Path to be foo.md, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Markdown" {
-		t.Fatalf("expected Language.Name to be Markdown, was %v", l.Language.Name)
+	if r.Result.Language.Name != "Markdown" {
+		t.Fatalf("expected Language.Name to be Markdown, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -370,24 +358,23 @@ func TestLanguageOptimizationsShell(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.sh" {
-		t.Fatalf("expected Path to be foo.sh, was %s", l.Path)
+	if r.Result.Path != "foo.sh" {
+		t.Fatalf("expected Path to be foo.sh, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Shell" {
-		t.Fatalf("expected Language.Name to be Shell, was %v", l.Language.Name)
+	if r.Result.Language.Name != "Shell" {
+		t.Fatalf("expected Language.Name to be Shell, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -399,24 +386,23 @@ func TestLanguageOptimizationsJSX(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.jsx" {
-		t.Fatalf("expected Path to be foo.jsx, was %s", l.Path)
+	if r.Result.Path != "foo.jsx" {
+		t.Fatalf("expected Path to be foo.jsx, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "JSX" {
-		t.Fatalf("expected Language.Name to be JSX, was %v", l.Language.Name)
+	if r.Result.Language.Name != "JSX" {
+		t.Fatalf("expected Language.Name to be JSX, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -428,24 +414,23 @@ func TestLanguageOptimizationsObjectiveC(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.m" {
-		t.Fatalf("expected Path to be foo.m, was %s", l.Path)
+	if r.Result.Path != "foo.m" {
+		t.Fatalf("expected Path to be foo.m, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Objective-C" {
-		t.Fatalf("expected Language.Name to be Objective-C, was %v", l.Language.Name)
+	if r.Result.Language.Name != "Objective-C" {
+		t.Fatalf("expected Language.Name to be Objective-C, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -457,24 +442,23 @@ func TestLanguageOptimizationsObjectiveCPlusPlus(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.mm" {
-		t.Fatalf("expected Path to be foo.mm, was %s", l.Path)
+	if r.Result.Path != "foo.mm" {
+		t.Fatalf("expected Path to be foo.mm, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Objective-C++" {
-		t.Fatalf("expected Language.Name to be Objective-C++, was %v", l.Language.Name)
+	if r.Result.Language.Name != "Objective-C++" {
+		t.Fatalf("expected Language.Name to be Objective-C++, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -486,24 +470,23 @@ func TestLanguageOptimizationsC(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.c" {
-		t.Fatalf("expected Path to be foo.c, was %s", l.Path)
+	if r.Result.Path != "foo.c" {
+		t.Fatalf("expected Path to be foo.c, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "C" {
-		t.Fatalf("expected Language.Name to be C, was %v", l.Language.Name)
+	if r.Result.Language.Name != "C" {
+		t.Fatalf("expected Language.Name to be C, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -515,24 +498,23 @@ func TestLanguageOptimizationsCHeader(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.h" {
-		t.Fatalf("expected Path to be foo.h, was %s", l.Path)
+	if r.Result.Path != "foo.h" {
+		t.Fatalf("expected Path to be foo.h, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "C" {
-		t.Fatalf("expected Language.Name to be C, was %v", l.Language.Name)
+	if r.Result.Language.Name != "C" {
+		t.Fatalf("expected Language.Name to be C, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -544,24 +526,23 @@ func TestLanguageOptimizationsCPlusPlus(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.cpp" {
-		t.Fatalf("expected Path to be foo.cpp, was %s", l.Path)
+	if r.Result.Path != "foo.cpp" {
+		t.Fatalf("expected Path to be foo.cpp, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "C++" {
-		t.Fatalf("expected Language.Name to be C++, was %v", l.Language.Name)
+	if r.Result.Language.Name != "C++" {
+		t.Fatalf("expected Language.Name to be C++, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -573,24 +554,23 @@ func TestLanguageOptimizationsCPlusPlus2(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.cc" {
-		t.Fatalf("expected Path to be foo.cc, was %s", l.Path)
+	if r.Result.Path != "foo.cc" {
+		t.Fatalf("expected Path to be foo.cc, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "C++" {
-		t.Fatalf("expected Language.Name to be C++, was %v", l.Language.Name)
+	if r.Result.Language.Name != "C++" {
+		t.Fatalf("expected Language.Name to be C++, was %v", r.Result.Language.Name)
 	}
 }
 
@@ -602,24 +582,23 @@ func TestLanguageOptimizationsJSON5(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.json5" {
-		t.Fatalf("expected Path to be foo.json5, was %s", l.Path)
+	if r.Result.Path != "foo.json5" {
+		t.Fatalf("expected Path to be foo.json5, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "JSON5" {
-		t.Fatalf("expected Language.Name to be JSON5 was %v", l.Language.Name)
+	if r.Result.Language.Name != "JSON5" {
+		t.Fatalf("expected Language.Name to be JSON5 was %v", r.Result.Language.Name)
 	}
 }
 
@@ -631,24 +610,23 @@ func TestLanguageOptimizationsProtobuf(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.proto" {
-		t.Fatalf("expected Path to be foo.proto, was %s", l.Path)
+	if r.Result.Path != "foo.proto" {
+		t.Fatalf("expected Path to be foo.proto, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Protocol Buffer" {
-		t.Fatalf("expected Language.Name to be Protocol Buffer was %v", l.Language.Name)
+	if r.Result.Language.Name != "Protocol Buffer" {
+		t.Fatalf("expected Language.Name to be Protocol Buffer was %v", r.Result.Language.Name)
 	}
 }
 
@@ -660,24 +638,23 @@ func TestLanguageOptimizationsPython(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.py" {
-		t.Fatalf("expected Path to be foo.py, was %s", l.Path)
+	if r.Result.Path != "foo.py" {
+		t.Fatalf("expected Path to be foo.py, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Python" {
-		t.Fatalf("expected Language.Name to be Python was %v", l.Language.Name)
+	if r.Result.Language.Name != "Python" {
+		t.Fatalf("expected Language.Name to be Python was %v", r.Result.Language.Name)
 	}
 }
 
@@ -689,24 +666,23 @@ func TestLanguageOptimizationsRuby(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.rb" {
-		t.Fatalf("expected Path to be foo.rb, was %s", l.Path)
+	if r.Result.Path != "foo.rb" {
+		t.Fatalf("expected Path to be foo.rb, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Ruby" {
-		t.Fatalf("expected Language.Name to be Ruby was %v", l.Language.Name)
+	if r.Result.Language.Name != "Ruby" {
+		t.Fatalf("expected Language.Name to be Ruby was %v", r.Result.Language.Name)
 	}
 }
 
@@ -718,24 +694,23 @@ func TestLanguageOptimizationsJava(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.java" {
-		t.Fatalf("expected Path to be foo.java, was %s", l.Path)
+	if r.Result.Path != "foo.java" {
+		t.Fatalf("expected Path to be foo.java, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Java" {
-		t.Fatalf("expected Language.Name to be Java was %v", l.Language.Name)
+	if r.Result.Language.Name != "Java" {
+		t.Fatalf("expected Language.Name to be Java was %v", r.Result.Language.Name)
 	}
 }
 
@@ -747,24 +722,23 @@ func TestLanguageOptimizationsCSharp(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.cs" {
-		t.Fatalf("expected Path to be foo.cs, was %s", l.Path)
+	if r.Result.Path != "foo.cs" {
+		t.Fatalf("expected Path to be foo.cs, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "C#" {
-		t.Fatalf("expected Language.Name to be C# was %v", l.Language.Name)
+	if r.Result.Language.Name != "C#" {
+		t.Fatalf("expected Language.Name to be C# was %v", r.Result.Language.Name)
 	}
 }
 
@@ -776,24 +750,23 @@ func TestLanguageOptimizationsXML(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.xml" {
-		t.Fatalf("expected Path to be foo.xml, was %s", l.Path)
+	if r.Result.Path != "foo.xml" {
+		t.Fatalf("expected Path to be foo.xml, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "XML" {
-		t.Fatalf("expected Language.Name to be XML was %v", l.Language.Name)
+	if r.Result.Language.Name != "XML" {
+		t.Fatalf("expected Language.Name to be XML was %v", r.Result.Language.Name)
 	}
 }
 
@@ -805,24 +778,23 @@ func TestLanguageOptimizationsHandlebars(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.hbs" {
-		t.Fatalf("expected Path to be foo.hbs, was %s", l.Path)
+	if r.Result.Path != "foo.hbs" {
+		t.Fatalf("expected Path to be foo.hbs, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Handlebars" {
-		t.Fatalf("expected Language.Name to be Handlebars was %v", l.Language.Name)
+	if r.Result.Language.Name != "Handlebars" {
+		t.Fatalf("expected Language.Name to be Handlebars was %v", r.Result.Language.Name)
 	}
 }
 
@@ -834,24 +806,23 @@ func TestLanguageOptimizationsLua(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.lua" {
-		t.Fatalf("expected Path to be foo.lua, was %s", l.Path)
+	if r.Result.Path != "foo.lua" {
+		t.Fatalf("expected Path to be foo.lua, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Lua" {
-		t.Fatalf("expected Language.Name to be Lua was %v", l.Language.Name)
+	if r.Result.Language.Name != "Lua" {
+		t.Fatalf("expected Language.Name to be Lua was %v", r.Result.Language.Name)
 	}
 }
 
@@ -863,24 +834,23 @@ func TestLanguageOptimizationsDockerfile(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "Dockerfile" {
-		t.Fatalf("expected Path to be Dockerfile, was %s", l.Path)
+	if r.Result.Path != "Dockerfile" {
+		t.Fatalf("expected Path to be Dockerfile, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Dockerfile" {
-		t.Fatalf("expected Language.Name to be Dockerfile was %v", l.Language.Name)
+	if r.Result.Language.Name != "Dockerfile" {
+		t.Fatalf("expected Language.Name to be Dockerfile was %v", r.Result.Language.Name)
 	}
 }
 
@@ -892,24 +862,23 @@ func TestLanguageOptimizationsText(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.txt" {
-		t.Fatalf("expected Path to be foo.txt, was %s", l.Path)
+	if r.Result.Path != "foo.txt" {
+		t.Fatalf("expected Path to be foo.txt, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "Text" {
-		t.Fatalf("expected Language.Name to be Text was %v", l.Language.Name)
+	if r.Result.Language.Name != "Text" {
+		t.Fatalf("expected Language.Name to be Text was %v", r.Result.Language.Name)
 	}
 }
 
@@ -921,24 +890,23 @@ func TestLanguageOptimizationsSQL(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.sql" {
-		t.Fatalf("expected Path to be foo.sql, was %s", l.Path)
+	if r.Result.Path != "foo.sql" {
+		t.Fatalf("expected Path to be foo.sql, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "SQL" {
-		t.Fatalf("expected Language.Name to be SQL was %v", l.Language.Name)
+	if r.Result.Language.Name != "SQL" {
+		t.Fatalf("expected Language.Name to be SQL was %v", r.Result.Language.Name)
 	}
 }
 
@@ -950,24 +918,23 @@ func TestLanguageOptimizationsTypescript(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.ts" {
-		t.Fatalf("expected Path to be foo.ts, was %s", l.Path)
+	if r.Result.Path != "foo.ts" {
+		t.Fatalf("expected Path to be foo.ts, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "TypeScript" {
-		t.Fatalf("expected Language.Name to be TypeScript was %v", l.Language.Name)
+	if r.Result.Language.Name != "TypeScript" {
+		t.Fatalf("expected Language.Name to be TypeScript was %v", r.Result.Language.Name)
 	}
 }
 
@@ -979,24 +946,23 @@ func TestLanguageOptimizationsCoffeescript(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.coffee" {
-		t.Fatalf("expected Path to be foo.coffee, was %s", l.Path)
+	if r.Result.Path != "foo.coffee" {
+		t.Fatalf("expected Path to be foo.coffee, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "CoffeeScript" {
-		t.Fatalf("expected Language.Name to be CoffeeScript was %v", l.Language.Name)
+	if r.Result.Language.Name != "CoffeeScript" {
+		t.Fatalf("expected Language.Name to be CoffeeScript was %v", r.Result.Language.Name)
 	}
 }
 
@@ -1008,24 +974,23 @@ func TestLanguageOptimizationsProperties(t *testing.T) {
 	if r.Success == false {
 		t.Fatal("expected result.success to be true")
 	}
-	if len(r.Results) != 1 {
-		t.Fatalf("expected len of results to be 1, was %d", len(r.Results))
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
 	}
-	l := r.Results[0]
-	if l.Path != "foo.properties" {
-		t.Fatalf("expected Path to be foo.properties, was %s", l.Path)
+	if r.Result.Path != "foo.properties" {
+		t.Fatalf("expected Path to be foo.properties, was %s", r.Result.Path)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Loc to be 0, was %v", l.Loc)
+	if r.Result.Loc != 0 {
+		t.Fatalf("expected Loc to be 0, was %v", r.Result.Loc)
 	}
-	if l.Loc != 0 {
-		t.Fatalf("expected Sloc to be 0, was %v", l.Loc)
+	if r.Result.Sloc != 0 {
+		t.Fatalf("expected Sloc to be 0, was %v", r.Result.Sloc)
 	}
-	if l.Type != "text" {
-		t.Fatalf("expected Type to be text, was %v", l.Type)
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
 	}
-	if l.Language.Name != "INI" {
-		t.Fatalf("expected Language.Name to be INI was %v", l.Language.Name)
+	if r.Result.Language.Name != "INI" {
+		t.Fatalf("expected Language.Name to be INI was %v", r.Result.Language.Name)
 	}
 }
 
@@ -1089,8 +1054,17 @@ func TestIgnoreImage(t *testing.T) {
 	if !r.Success {
 		t.Fatal("expected success to be true")
 	}
-	if len(r.Results) > 0 {
-		t.Fatal("expected results to be empty")
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if !r.IsBinary {
+		t.Fatal("expected IsBinary to be true")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
 	}
 }
 
@@ -1106,8 +1080,17 @@ func TestIgnoreLargeBuffer(t *testing.T) {
 	if !r.Success {
 		t.Fatal("expected success to be true")
 	}
-	if len(r.Results) > 0 {
-		t.Fatal("expected results to be empty")
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if !r.IsLarge {
+		t.Fatal("expected IsLarge to be true")
 	}
 }
 
@@ -1119,8 +1102,17 @@ func TestIgnoreExcludedExtension(t *testing.T) {
 	if !r.Success {
 		t.Fatal("expected success to be true")
 	}
-	if len(r.Results) > 0 {
-		t.Fatal("expected results to be empty")
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
 	}
 }
 
@@ -1132,8 +1124,17 @@ func TestIgnoreExcludedFilename(t *testing.T) {
 	if !r.Success {
 		t.Fatal("expected success to be true")
 	}
-	if len(r.Results) > 0 {
-		t.Fatal("expected results to be empty")
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
 	}
 }
 
