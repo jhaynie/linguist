@@ -1,4 +1,4 @@
-# Linguist Go Wrapper
+# Linguist Go Wrapper [![CircleCI](https://circleci.com/gh/jhaynie/linguist.svg?style=svg)](https://circleci.com/gh/jhaynie/linguist)
 
 This is a simple Go API around the [Linguist](https://github.com/pinpt/linguist) server.
 
