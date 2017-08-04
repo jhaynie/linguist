@@ -402,8 +402,6 @@ var (
 	}
 	excludedFilenames = map[string]bool{
 		"npm-debug.log": true,
-		"LICENSE":       true,
-		"LICENSE.md":    true,
 	}
 	binaryResult   = &Result{true, "", nil, true, false, true}
 	largeResult    = &Result{true, "", nil, false, true, true}

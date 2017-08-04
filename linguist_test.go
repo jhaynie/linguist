@@ -907,7 +907,7 @@ func TestIgnoreExcludedExtension(t *testing.T) {
 }
 
 func TestIgnoreExcludedFilename(t *testing.T) {
-	r, err := GetLanguageDetails(context.Background(), "foo/LICENSE", []byte("foo\n"))
+	r, err := GetLanguageDetails(context.Background(), "npm-debug.log", []byte("foo\n"))
 	if err != nil {
 		t.Fatal(err)
 	}
