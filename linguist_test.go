@@ -389,7 +389,7 @@ func TestLanguageOptimizationsC(t *testing.T) {
 }
 
 func TestLanguageOptimizationsCHeader(t *testing.T) {
-	r, err := GetLanguageDetails(context.Background(), "foo.h", []byte("#include <stdlib.h>\n"))
+	r, err := GetLanguageDetails(context.Background(), "foo.h", []byte("#include <stdlib.h>\nint c;\n"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -785,8 +785,9 @@ func TestLanguageOptimizationsProperties(t *testing.T) {
 }
 
 func TestCacheStats(t *testing.T) {
-	if CacheHits() != 35 {
-		t.Fatalf("expected cache hits to be 34, was %d", CacheHits())
+	cacheCounterReset()
+	if CacheHits() != 0 {
+		t.Fatalf("expected cache hits to be 0, was %d", CacheHits())
 	}
 	if CacheMisses() != 0 {
 		t.Fatalf("expected cache misses to be 0, was %d", CacheMisses())
@@ -795,17 +796,18 @@ func TestCacheStats(t *testing.T) {
 	if popular.Language.Name != "YAML" {
 		t.Fatalf("expected popular.Language to be YAML, was %v", popular.Language.Name)
 	}
-	GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
-	GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
-	GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
-	GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
-	GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
-	GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
-	GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
-	GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
+	for i := 0; i < 101; i++ {
+		GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
+	}
 	popular = MostPopular()
 	if popular.Language.Name != "Go" {
 		t.Fatalf("expected popular.Language to be Go, was %v", popular.Language.Name)
+	}
+	if CacheHits() != 101 {
+		t.Fatalf("expected cache hits to be 101, was %d", CacheHits())
+	}
+	if CacheMisses() != 0 {
+		t.Fatalf("expected cache misses to be 0, was %d", CacheMisses())
 	}
 }
 
@@ -958,6 +960,280 @@ func TestMutation(t *testing.T) {
 	}
 	if r.Result.Language.Name != "JavaScript" {
 		t.Fatalf("expected language to be JavaScript, but was %s", r.Result.Language.Name)
+	}
+}
+
+func TestGoVendored(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "vendor/github.com/jhaynie/foo/foo.go", []byte("package foo\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
+	}
+	if r.Result.Language.Name != "Go" {
+		t.Fatalf("expected language to be Go, but was %s", r.Result.Language.Name)
+	}
+	r, err = GetLanguageDetails(context.Background(), "Godeps/github.com/jhaynie/foo/foo.go", []byte("package foo\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
+	}
+	if r.Result.Language.Name != "Go" {
+		t.Fatalf("expected language to be Go, but was %s", r.Result.Language.Name)
+	}
+}
+
+func TestNodeVendored(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "node_modules/foo/foo.js", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
+	}
+	if r.Result.Language.Name != "JavaScript" {
+		t.Fatalf("expected language to be JavaScript, but was %s", r.Result.Language.Name)
+	}
+}
+
+func TestMinimizedJS(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "foo.min.js", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
+	}
+}
+
+func TestDistJS(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "dist/foo.js", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
+	}
+}
+
+func TestJSSourceMap(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "foo.js.map", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
+	}
+}
+
+func TestAddCustomExtensionRule(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if r.IsExcluded {
+		t.Fatal("expected IsExcluded to be false")
+	}
+	AddExcludedExtension(".jeff")
+	defer RemoveExcludedExtension(".jeff")
+	r, err = GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	RemoveExcludedExtension(".jeff")
+	r, err = GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if r.IsExcluded {
+		t.Fatal("expected IsExcluded to be false")
+	}
+}
+
+func TestAddCustomFilenameRule(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if r.IsExcluded {
+		t.Fatal("expected IsExcluded to be false")
+	}
+	AddExcludedFilename("foo.jeff")
+	defer RemoveExcludedFilename("foo.jeff")
+	r, err = GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	RemoveExcludedFilename("foo.jeff")
+	r, err = GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if r.IsExcluded {
+		t.Fatal("expected IsExcluded to be false")
+	}
+}
+
+func TestAddCustomMatchRule(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if r.IsExcluded {
+		t.Fatal("expected IsExcluded to be false")
+	}
+	match := NewMatcher("\\.jeff$")
+	AddExcludedRule(match)
+	defer RemoveExcludedRule(match)
+	r, err = GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+	RemoveExcludedRule(match)
+	r, err = GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to not be nil")
+	}
+	if r.IsExcluded {
+		t.Fatal("expected IsExcluded to be false")
 	}
 }
 

@@ -90,7 +90,7 @@ type LResult struct {
 }
 
 type preoptimization struct {
-	Pattern   *regexp.Regexp
+	Matchers  []Match
 	Result    Result
 	CacheHits int32
 }
@@ -106,16 +106,21 @@ var (
 		MaxIdleConnsPerHost: 50,
 	}
 	client   = &http.Client{Transport: transport, Timeout: time.Second * 30}
-	mutex    = sync.Mutex{}
+	mutex    = sync.RWMutex{}
 	noResult = Result{}
 )
 
-func preoptimize(re string, filename string, body string) {
+func preoptimize(re Match, filename string, body string, rules ...Match) {
 	result, err := getLanguageDetails(context.Background(), filename, []byte(body))
 	if err == nil && result.Success {
 		p := &preoptimization{
-			Pattern: regexp.MustCompile(re),
-			Result:  result,
+			Matchers: []Match{re},
+			Result:   result,
+		}
+		if len(rules) > 0 {
+			for _, r := range rules {
+				p.Matchers = append(p.Matchers, r)
+			}
 		}
 		preoptimizations = append(preoptimizations, p)
 	}
@@ -139,6 +144,12 @@ func CacheMisses() int32 {
 	return atomic.LoadInt32(&cacheMisses)
 }
 
+func cacheCounterReset() {
+	atomic.StoreInt32(&cacheHits, 0)
+	atomic.StoreInt32(&cacheMisses, 0)
+	resort()
+}
+
 // MostPopular returns the most popular language based on cache hits since the worker has started
 func MostPopular() Detection {
 	resort()
@@ -153,44 +164,74 @@ func Initialize() {
 	preoptimizeInit()
 }
 
+// Match is a simple struct for describing a match rule
+type Match struct {
+	re     *regexp.Regexp
+	invert bool
+}
+
+// MatchString will return true if the expression matches s
+func (m Match) MatchString(s string) bool {
+	matched := m.re.MatchString(s)
+	if !m.invert && matched {
+		return true
+	} else if m.invert && !matched {
+		return true
+	}
+	return false
+}
+
+// NewMatcher will create a Matcher with a regular expression
+func NewMatcher(s string) Match {
+	return Match{regexp.MustCompile(s), false}
+}
+
+// NewNotMatcher will create a Matcher that will NOT match the regular expression
+func NewNotMatcher(s string) Match {
+	return Match{regexp.MustCompile(s), true}
+}
+
 // initialize a pre-optimization cache for well-known languages to speed up
 // calculating predictable language results
 func preoptimizeInit() {
 	if preoptimized == false {
 		preoptimized = true
-		preoptimize("\\.js$", "test.js", "var a")
-		preoptimize("\\.ts$", "test.ts", "interface Foo {\n}")
-		preoptimize("\\.ejs$", "test.ejs", "<% if (names.length) { %>foo<% } %>")
-		preoptimize("\\.go$", "test.go", "package main\nfunc main(){\n}\n")
-		preoptimize("Makefile$", "Makefile", ".phony foo\n")
-		preoptimize("\\.ya?ml$", "test.yml", "---\nfoo: 1\n")
-		preoptimize("\\.json$", "test.json", "{\"a\":1}")
-		preoptimize("\\.swift$", "test.swift", "let a=0")
-		preoptimize("\\.c(\\+\\+|pp|c)$", "test.cpp", "class Foo{\n};\n")
-		preoptimize("\\.hbs$", "test.hbs", "<div>{{foo}}</div>")
-		preoptimize("\\.html$", "test.html", "<div>hi</div>")
-		preoptimize("\\.css$", "test.css", ".rule {color:red}")
-		preoptimize("\\.scss$", "test.scss", ".rule {color:red}")
-		preoptimize("\\.(ba|z)?sh$", "test.sh", "#!/bin/sh\n")
-		preoptimize("\\.md$", "test.md", "# Foo\n")
-		preoptimize("\\.json5$", "test.json5", "{a:1}")
-		preoptimize("\\.jsx$", "test.jsx", "import a from 'foo'\n")
-		preoptimize("\\.m$", "test.m", "@implementation Foo\n@end\n")
-		preoptimize("\\.mm$", "test.mm", "@implementation Foo\n@end\n")
-		preoptimize("\\.(c|h)$", "test.c", "void main(){\n}\n")
-		preoptimize("\\.rb$", "test.rb", "print \"hello\"")
-		preoptimize("\\.py$", "test.py", "def foo\nend\n")
-		preoptimize("\\.proto$", "test.proto", "package foo\nmessage Bar\n{\n}\n")
-		preoptimize("\\.java$", "test.java", "package foo\npublic class Bar\n{\n}\n")
-		preoptimize("\\.cs$", "test.cs", "class Bar\n{\n}\n")
-		preoptimize("\\.xml$", "test.xml", "<a>foo</a>")
-		preoptimize("\\.lua$", "test.lua", "x=0")
-		preoptimize("\\.txt$", "test.txt", "hi")
-		preoptimize("\\.sql$", "test.sql", "delete from foo")
-		preoptimize("\\.coffee$", "test.coffee", "a = 1")
-		preoptimize("\\.properties$", "test.properties", "a=1")
-		preoptimize("Dockerfile(\\.*)$", "Dockerfile", "FROM nodejs\n")
-		preoptimize("LICENSE$", "LICENSE", "MIT License\n")
+		noVendorMatcher := NewNotMatcher("^(node_modules|vendor|Godeps)/")
+		preoptimize(NewMatcher("\\.js$"), "test.js", "var a", noVendorMatcher)
+		preoptimize(NewMatcher("\\.ts$"), "test.ts", "interface Foo {\n}", noVendorMatcher)
+		preoptimize(NewMatcher("\\.ejs$"), "test.ejs", "<% if (names.length) { %>foo<% } %>", noVendorMatcher)
+		preoptimize(NewMatcher("\\.go$"), "test.go", "package main\nfunc main(){\n}\n", noVendorMatcher)
+		preoptimize(NewMatcher("Makefile$"), "Makefile", ".phony foo\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.ya?ml$"), "test.yml", "---\nfoo: 1\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.json$"), "test.json", "{\"a\":1}", noVendorMatcher)
+		preoptimize(NewMatcher("\\.swift$"), "test.swift", "let a=0")
+		preoptimize(NewMatcher("\\.c(\\+\\+|pp|c)$"), "test.cpp", "class Foo{\n};\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.hbs$"), "test.hbs", "<div>{{foo}}</div>", noVendorMatcher)
+		preoptimize(NewMatcher("\\.html$"), "test.html", "<div>hi</div>", noVendorMatcher)
+		preoptimize(NewMatcher("\\.css$"), "test.css", ".rule {color:red}", noVendorMatcher)
+		preoptimize(NewMatcher("\\.scss$"), "test.scss", ".rule {color:red}", noVendorMatcher)
+		preoptimize(NewMatcher("\\.(ba|z)?sh$"), "test.sh", "#!/bin/sh\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.(md|markdown)$"), "test.md", "# Foo\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.json5$"), "test.json5", "{a:1}", noVendorMatcher)
+		preoptimize(NewMatcher("\\.jsx$"), "test.jsx", "import a from 'foo'\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.ts$"), "test.ts", "import a from 'foo'\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.tsx$"), "test.tsx", "import a from 'foo'\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.m$"), "test.m", "@implementation Foo\n@end\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.mm$"), "test.mm", "@implementation Foo\n@end\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.(c|h)$"), "test.c", "void main(){\n}\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.rb$"), "test.rb", "print \"hello\"")
+		preoptimize(NewMatcher("\\.py$"), "test.py", "def foo\nend\n")
+		preoptimize(NewMatcher("\\.proto$"), "test.proto", "package foo\nmessage Bar\n{\n}\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.java$"), "test.java", "package foo\npublic class Bar\n{\n}\n")
+		preoptimize(NewMatcher("\\.cs$"), "test.cs", "class Bar\n{\n}\n")
+		preoptimize(NewMatcher("\\.xml$"), "test.xml", "<a>foo</a>", noVendorMatcher)
+		preoptimize(NewMatcher("\\.lua$"), "test.lua", "x=0")
+		preoptimize(NewMatcher("\\.txt$"), "test.txt", "hi", noVendorMatcher)
+		preoptimize(NewMatcher("\\.sql$"), "test.sql", "delete from foo", noVendorMatcher)
+		preoptimize(NewMatcher("\\.coffee$"), "test.coffee", "a = 1", noVendorMatcher)
+		preoptimize(NewMatcher("\\.properties$"), "test.properties", "a=1", noVendorMatcher)
+		preoptimize(NewMatcher("Dockerfile(\\.*)$"), "Dockerfile", "FROM nodejs\n")
+		preoptimize(NewMatcher("LICENSE$"), "LICENSE", "MIT License\n", noVendorMatcher)
 		// reset after loading.
 		atomic.StoreInt32(&cacheMisses, 0)
 		atomic.StoreInt32(&cacheHits, 0)
@@ -198,9 +239,17 @@ func preoptimizeInit() {
 }
 
 func checkPreoptimizationCache(filename string) Result {
-	mutex.Lock()
+	mutex.RLock()
 	for _, p := range preoptimizations {
-		if p.Pattern.MatchString(filename) {
+		var matched int
+		for _, matcher := range p.Matchers {
+			if matcher.MatchString(filename) {
+				matched++
+			} else {
+				break
+			}
+		}
+		if matched == len(p.Matchers) {
 			// make a copy so that the result can't be mutated
 			l := Language(*p.Result.Result.Language)
 			result := Result{
@@ -229,15 +278,13 @@ func checkPreoptimizationCache(filename string) Result {
 				IsExcluded: p.Result.Result.IsBinary,
 			}
 			atomic.AddInt32(&p.CacheHits, 1)
-			mutex.Unlock()
+			mutex.RUnlock()
 			return result
 		}
 	}
-	mutex.Unlock()
+	mutex.RUnlock()
 	return noResult
 }
-
-var concurrent int32
 
 // GetLanguageDetails returns the linguist results for a given file
 func GetLanguageDetails(ctx context.Context, filename string, body []byte) (Result, error) {
@@ -246,7 +293,6 @@ func GetLanguageDetails(ctx context.Context, filename string, body []byte) (Resu
 	}
 	if preop := checkPreoptimizationCache(filename); preop.Success {
 		hits := atomic.AddInt32(&cacheHits, 1)
-		// log.Debug("linguist cache hit [%05d/%05d]", hits, CacheMisses())
 		// every N hits, resort so that the most popular stays
 		// at the top of the heap for faster access and less popular go to bottom
 		if hits%100 == 0 {
@@ -254,10 +300,6 @@ func GetLanguageDetails(ctx context.Context, filename string, body []byte) (Resu
 		}
 		return preop, nil
 	}
-	// count := atomic.AddInt32(&concurrent, 1)
-	atomic.AddInt32(&concurrent, 1)
-	defer func() { atomic.AddInt32(&concurrent, -1) }()
-	// log.Debug("linguist cache miss [%05d/%05d]", CacheHits(), CacheMisses(), log.WithFields("file", filename, "concurrent", count))
 	result, err := getLanguageDetails(ctx, filename, body)
 	if result.Success {
 		atomic.AddInt32(&cacheMisses, 1)
@@ -294,11 +336,13 @@ func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, 
 	if err != nil {
 		return noResult, err
 	}
+	resp.Body.Close()
 	if result.Success {
 		if len(result.Results) > 0 {
 			// make a copy so that the result can't be mutated
 			detection := Detection(result.Results[0])
-			return Result{Success: true, Message: result.Message, Result: &detection, IsBinary: detection.IsBinary, IsLarge: detection.IsLarge, IsExcluded: detection.IsBinary}, nil
+			excluded := detection.IsBinary || detection.IsVendored || detection.IsGenerated
+			return Result{Success: true, Message: result.Message, Result: &detection, IsBinary: detection.IsBinary, IsLarge: detection.IsLarge, IsExcluded: excluded}, nil
 		}
 		return Result{Success: true, Message: result.Message, IsExcluded: true}, nil
 	}
@@ -320,14 +364,22 @@ func isLikelyBinary(body []byte) bool {
 	return false
 }
 
-const maxBufferSize = 10000
+const maxBufferSize = 100000
 
 func isLargeBuffer(body []byte) bool {
 	return len(body) > maxBufferSize
 }
 
 func isFilenameExcluded(name string) bool {
-	return excludedFilenames[filepath.Base(name)] || excludeExtensions[filepath.Ext(name)]
+	if excludedFilenames[filepath.Base(name)] || excludeExtensions[filepath.Ext(name)] {
+		return true
+	}
+	for _, rule := range excludedRules {
+		if rule.MatchString(name) {
+			return true
+		}
+	}
+	return false
 }
 
 var (
@@ -399,14 +451,84 @@ var (
 		".npmignore":     true,
 		".lock":          true,
 		".npmrc":         true,
+		".babelrc":       true,
+		".jshintrc":      true,
+		".eslintrc":      true,
+		".eslintignore":  true,
+		".editorconfig":  true,
+		".flowconfig":    true,
 	}
 	excludedFilenames = map[string]bool{
-		"npm-debug.log": true,
+		".travis.yml":                true,
+		"npm-debug.log":              true,
+		"package-lock.json":          true,
+		"package.json":               true,
+		".eslintrc.js":               true,
+		"postcss.config.js":          true,
+		"jest.config.json":           true,
+		"jest-preset.json":           true,
+		"webpack.js":                 true,
+		"webpack.config.js":          true,
+		"webpack.config.dev.js":      true,
+		"webpack.config.prod.js":     true,
+		"webpackDevServer.config.js": true,
+		"bower.json":                 true,
+		"AUTHORS":                    true,
+		"AUTHORS.md":                 true,
+		"PATENTS":                    true,
+		"license":                    true,
+		"LICENSE":                    true,
+		"LICENSE.md":                 true,
+		"PULL_REQUEST_TEMPLATE.md":   true,
+		"glide.yaml":                 true,
+		"Gopkg.lock":                 true,
+		"Gopkg.toml":                 true,
+	}
+	excludedRules = []Match{
+		NewMatcher("\\.min\\.js$"),     // minimized JS
+		NewMatcher("\\.js\\.map$"),     // JS sourcemap
+		NewMatcher("^dist/(.*)\\.js$"), // generated JS files
 	}
 	binaryResult   = &Result{true, "", nil, true, false, true}
 	largeResult    = &Result{true, "", nil, false, true, true}
 	excludedResult = &Result{true, "", nil, false, false, true}
 )
+
+// AddExcludedRule will add a rule to the exclusions list
+func AddExcludedRule(match Match) {
+	excludedRules = append(excludedRules, match)
+}
+
+// AddExcludedFilename will add a filename rule to be excluded
+func AddExcludedFilename(filename string) {
+	excludedFilenames[filename] = true
+}
+
+// AddExcludedExtension will add extension to the exclusion list
+func AddExcludedExtension(ext string) {
+	excludeExtensions[ext] = true
+}
+
+// RemoveExcludedExtension will remove the extension as an exclusion rule
+func RemoveExcludedExtension(ext string) {
+	delete(excludeExtensions, ext)
+}
+
+// RemoveExcludedFilename will remove the filename as an exclusion rule
+func RemoveExcludedFilename(filename string) {
+	delete(excludedFilenames, filename)
+}
+
+// RemoveExcludedRule will remove the added match from the exclusion rule
+func RemoveExcludedRule(match Match) {
+	for i, m := range excludedRules {
+		if match == m {
+			excludedRules[i] = excludedRules[len(excludedRules)-1]
+			excludedRules = excludedRules[:len(excludedRules)-1]
+			break
+		}
+	}
+}
 
 func isExcluded(filename string, body []byte) (bool, *Result) {
 	if isLikelyBinary(body) {
