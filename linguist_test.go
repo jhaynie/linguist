@@ -1237,6 +1237,49 @@ func TestAddCustomMatchRule(t *testing.T) {
 	}
 }
 
+func TestMulti(t *testing.T) {
+	files := []*File{
+		NewFile("foo.properties", []byte("foo=1")),
+		NewFile("foo.js", []byte("var foo=1")),
+		NewFile("foo.jsx", []byte("var foo=1")),
+		NewFile("foo.go", []byte("package foo\n")),
+	}
+	results, err := GetLanguageDetailsMultiple(context.Background(), files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(results) != len(files) {
+		t.Fatalf("expected length to be %d, was %d", len(files), len(results))
+	}
+	var expected = []struct {
+		language string
+		thetype  string
+		path     string
+	}{
+		{"INI", "text", "foo.properties"},
+		{"JavaScript", "text", "foo.js"},
+		{"JSX", "text", "foo.jsx"},
+		{"Go", "text", "foo.go"},
+	}
+	for i, e := range expected {
+		if !results[i].Success {
+			t.Fatalf("expected %d to be Success but was not", i)
+		}
+		if results[i].Result == nil {
+			t.Fatalf("expected %d Result to not be nil", i)
+		}
+		if results[i].Result.Language.Name != e.language {
+			t.Fatalf("expected %d language to be %s was %s", i, e.language, results[i].Result.Language.Name)
+		}
+		if results[i].Result.Type != e.thetype {
+			t.Fatalf("expected %d language type to be %s was %s", i, e.thetype, results[i].Result.Type)
+		}
+		if results[i].Result.Path != e.path {
+			t.Fatalf("expected %d language path to be %s was %s", i, e.path, results[i].Result.Path)
+		}
+	}
+}
+
 func BenchmarkLinguist(b *testing.B) {
 	buf := []byte("package test\nvar a string\n")
 	ctx := context.Background()

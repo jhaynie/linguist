@@ -37,7 +37,7 @@ There are a ton of common exclusion rules to exclude certain files based on a nu
 To add an exclusion that matches the name of a file, use `AddExcludedFilename`:
 
 ```golang
-AddExcludedFilename("foo.extension")
+linguist.AddExcludedFilename("foo.extension")
 ```
 
 You can remove a rule with `RemoveExcludedFilename`.
@@ -47,7 +47,7 @@ You can remove a rule with `RemoveExcludedFilename`.
 To add an exclusion that matches the extension of a file, use `AddExcludedExtension`:
 
 ```golang
-AddExcludedExtension(".extension")
+linguist.AddExcludedExtension(".extension")
 ```
 
 You can remove a rule with `RemoveExcludedExtension`.
@@ -57,11 +57,24 @@ You can remove a rule with `RemoveExcludedExtension`.
 To add an exclusion that matches based on a regular expression rule, use `AddExcludedRule`:
 
 ```golang
-rule := NewMatcher("\\.somepath$")
-AddExcludedRule(rule)
+rule := linguist.NewMatcher("\\.somepath$")
+linguist.AddExcludedRule(rule)
 ```
 
 Use `NewMatcher` with a regular expression string which should evaluate to true to exclude the file.
 Use `NewNotMatcher` with a regular expression string which should evaluate to false to exclude the file.
 
 You can remove a rule with `RemoveExcludedRule`.
+
+## Submitting multiple files
+
+You can submit more than one file for analysis by using the `GetLanguageDetailsMultiple` function:
+
+```golang
+files := []*linguist.File{
+	linguist.NewFile("foo.properties", []byte("foo=1")),
+	linguist.NewFile("foo.js", []byte("var foo=1")),
+	linguist.NewFile("foo.jsx", []byte("var foo=1")),
+}
+results, err := linguist.GetLanguageDetailsMultiple(context.Background(), files)
+```

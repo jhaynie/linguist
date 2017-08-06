@@ -111,11 +111,11 @@ var (
 )
 
 func preoptimize(re Match, filename string, body string, rules ...Match) {
-	result, err := getLanguageDetails(context.Background(), filename, []byte(body))
-	if err == nil && result.Success {
+	results, err := getLanguageDetails(context.Background(), filename, []byte(body))
+	if err == nil && results[0].Success {
 		p := &preoptimization{
 			Matchers: []Match{re},
-			Result:   result,
+			Result:   results[0],
 		}
 		if len(rules) > 0 {
 			for _, r := range rules {
@@ -300,20 +300,75 @@ func GetLanguageDetails(ctx context.Context, filename string, body []byte) (Resu
 		}
 		return preop, nil
 	}
-	result, err := getLanguageDetails(ctx, filename, body)
-	if result.Success {
+	results, err := getLanguageDetails(ctx, filename, body)
+	if results[0].Success {
 		atomic.AddInt32(&cacheMisses, 1)
 	}
-	return result, err
+	return results[0], err
 }
 
-func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, attempts int) (Result, error) {
+// File is a wrapper around a file name and body
+type File struct {
+	filename string
+	body     []byte
+}
+
+// NewFile will return a File struct
+func NewFile(filename string, body []byte) *File {
+	return &File{filename, body}
+}
+
+// Filereq is used internally
+type Filereq struct {
+	Name string `json:"name"`
+	Body string `json:"body"`
+}
+
+// GetLanguageDetailsMultiple returns the linguist results for one or more files
+func GetLanguageDetailsMultiple(ctx context.Context, files []*File) ([]Result, error) {
+	results := make([]Result, 0)
+	jsonbody := make([]Filereq, 0)
+	indexmap := make(map[int]int)
+	for i, file := range files {
+		if ex, r := isExcluded(file.filename, file.body); ex {
+			results = append(results, *r)
+			continue
+		}
+		if preop := checkPreoptimizationCache(file.filename); preop.Success {
+			hits := atomic.AddInt32(&cacheHits, 1)
+			// every N hits, resort so that the most popular stays
+			// at the top of the heap for faster access and less popular go to bottom
+			if hits%100 == 0 {
+				resort()
+			}
+			results = append(results, preop)
+			continue
+		}
+		jsonbody = append(jsonbody, Filereq{file.filename, string(file.body)})
+		results = append(results, Result{})
+		indexmap[len(jsonbody)-1] = i
+	}
+	if len(jsonbody) == 0 {
+		return results, nil
+	}
+	r, err := attempt(ctx, stringify(jsonbody), linguisturl, authtoken, 1)
+	if err != nil {
+		return nil, err
+	}
+	for i, result := range r {
+		idx := indexmap[i]
+		results[idx] = result
+	}
+	return results, nil
+}
+
+func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, attempts int) ([]Result, error) {
 	if attempts > 10 {
-		return noResult, fmt.Errorf("error attempting to load %s after %d attempts", url, attempts)
+		return []Result{noResult}, fmt.Errorf("error attempting to load %s after %d attempts", url, attempts)
 	}
 	_req, err := http.NewRequest("POST", url, strings.NewReader(jsonbuf))
 	if err != nil {
-		return noResult, err
+		return []Result{noResult}, err
 	}
 	req := _req.WithContext(ctx)
 	if authtoken != "" {
@@ -326,7 +381,7 @@ func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, 
 			time.Sleep(time.Millisecond * time.Duration(50*attempts+1))
 			return attempt(ctx, jsonbuf, url, authtoken, attempts+1)
 		}
-		return noResult, err
+		return []Result{noResult}, err
 	}
 	defer resp.Body.Close()
 	result := LResult{}
@@ -334,19 +389,23 @@ func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, 
 	d.UseNumber() // prevent numbers from getting converted
 	err = d.Decode(&result)
 	if err != nil {
-		return noResult, err
+		return []Result{noResult}, err
 	}
 	resp.Body.Close()
 	if result.Success {
 		if len(result.Results) > 0 {
-			// make a copy so that the result can't be mutated
-			detection := Detection(result.Results[0])
-			excluded := detection.IsBinary || detection.IsVendored || detection.IsGenerated
-			return Result{Success: true, Message: result.Message, Result: &detection, IsBinary: detection.IsBinary, IsLarge: detection.IsLarge, IsExcluded: excluded}, nil
+			results := make([]Result, 0)
+			for _, r := range result.Results {
+				// make a copy so that the result can't be mutated
+				detection := Detection(r)
+				excluded := detection.IsBinary || detection.IsVendored || detection.IsGenerated
+				results = append(results, Result{Success: true, Message: result.Message, Result: &detection, IsBinary: detection.IsBinary, IsLarge: detection.IsLarge, IsExcluded: excluded})
+			}
+			return results, nil
 		}
-		return Result{Success: true, Message: result.Message, IsExcluded: true}, nil
+		return []Result{Result{Success: true, Message: result.Message, IsExcluded: true}}, nil
 	}
-	return noResult, errors.New(result.Message)
+	return []Result{noResult}, errors.New(result.Message)
 }
 
 func isLikelyBinary(body []byte) bool {
@@ -479,6 +538,7 @@ var (
 		"license":                    true,
 		"LICENSE":                    true,
 		"LICENSE.md":                 true,
+		"VERSION":                    true,
 		"PULL_REQUEST_TEMPLATE.md":   true,
 		"glide.yaml":                 true,
 		"Gopkg.lock":                 true,
@@ -543,7 +603,7 @@ func isExcluded(filename string, body []byte) (bool, *Result) {
 	return false, nil
 }
 
-func getLanguageDetails(ctx context.Context, filename string, body []byte) (Result, error) {
+func getLanguageDetails(ctx context.Context, filename string, body []byte) ([]Result, error) {
 	jsonbody := []interface{}{map[string]string{
 		"name": filename,
 		"body": string(body),
