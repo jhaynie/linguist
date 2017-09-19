@@ -252,6 +252,10 @@ func CheckPreoptimizationCache(filename string) Result {
 			}
 		}
 		if matched == len(p.Matchers) {
+			ex, r := IsExcluded(filename, nil)
+			if ex {
+				return *r
+			}
 			// make a copy so that the result can't be mutated
 			l := Language(*p.Result.Result.Language)
 			result := Result{
@@ -291,7 +295,7 @@ func CheckPreoptimizationCache(filename string) Result {
 
 // GetLanguageDetails returns the linguist results for a given file
 func GetLanguageDetails(ctx context.Context, filename string, body []byte, skip ...bool) (Result, error) {
-	if ex, r := isExcluded(filename, body); ex {
+	if ex, r := IsExcluded(filename, body); ex {
 		return *r, nil
 	}
 	if len(skip) == 0 || !skip[0] {
@@ -339,7 +343,7 @@ func GetLanguageDetailsMultiple(ctx context.Context, files []*File, skipCache ..
 		skip = true
 	}
 	for i, file := range files {
-		if ex, r := isExcluded(file.filename, file.body); ex {
+		if ex, r := IsExcluded(file.filename, file.body); ex {
 			results = append(results, *r)
 			continue
 		}
@@ -422,7 +426,8 @@ func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, 
 	return []Result{noResult}, errors.New(result.Message)
 }
 
-func isLikelyBinary(body []byte) bool {
+// IsLikelyBinary returns true if the body is likely a binary buffer
+func IsLikelyBinary(body []byte) bool {
 	ct := http.DetectContentType(body)
 	if strings.HasPrefix(ct, "image/") || strings.HasPrefix(ct, "video/") {
 		return true
@@ -440,8 +445,9 @@ func isLikelyBinary(body []byte) bool {
 // MaxBufferSize is the large size in bytes that a buffer can be before it's considered "large"
 const MaxBufferSize = 100000
 
-func isLargeBuffer(body []byte) bool {
-	return len(body) > MaxBufferSize
+// IsLargeBuffer returns true if the size is larger than MaxBufferSize
+func IsLargeBuffer(size int) bool {
+	return size > MaxBufferSize
 }
 
 func isFilenameExcluded(name string) bool {
@@ -605,12 +611,15 @@ func RemoveExcludedRule(match Match) {
 	}
 }
 
-func isExcluded(filename string, body []byte) (bool, *Result) {
-	if isLikelyBinary(body) {
-		return true, binaryResult
-	}
-	if isLargeBuffer(body) {
-		return true, largeResult
+// IsExcluded returns true if the filename and optional body is excluded. If nil body, will only check for filename
+func IsExcluded(filename string, body []byte) (bool, *Result) {
+	if body != nil {
+		if IsLikelyBinary(body) {
+			return true, binaryResult
+		}
+		if IsLargeBuffer(len(body)) {
+			return true, largeResult
+		}
 	}
 	if isFilenameExcluded(filename) {
 		return true, excludedResult

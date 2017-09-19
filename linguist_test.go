@@ -1367,3 +1367,19 @@ func TestSkipPreoptimizationCache(t *testing.T) {
 		t.Fatal("expected IsCached to be false")
 	}
 }
+
+func TestPreoptimizationExcluded(t *testing.T) {
+	r := CheckPreoptimizationCache("package.json")
+	if r.Success == false {
+		t.Fatal("expected result.success to be true")
+	}
+	if r.Result != nil {
+		t.Fatal("expected result to be nil")
+	}
+	if r.IsCached {
+		t.Fatal("expected IsCached to be false")
+	}
+	if !r.IsExcluded {
+		t.Fatal("expected IsExcluded to be true")
+	}
+}
