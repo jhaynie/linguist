@@ -36,6 +36,28 @@ func TestLanguageOptimizationsJavaScript(t *testing.T) {
 	}
 }
 
+func TestEmptyJavascript(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "test/foo.js", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Success == false {
+		t.Fatal("expected result.success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
+	}
+	if r.Result.Path != "test/foo.js" {
+		t.Fatalf("expected Path to be test/foo.js, was %s", r.Result.Path)
+	}
+	if r.Result.Type != "text" {
+		t.Fatalf("expected Type to be text, was %v", r.Result.Type)
+	}
+	if r.Result.Language.Name != "JavaScript" {
+		t.Fatalf("expected Language.Name to be JavaScript, was %v", r.Result.Language.Name)
+	}
+}
+
 func TestLanguageOptimizationsGolang(t *testing.T) {
 	r, err := GetLanguageDetails(context.Background(), "foo.go", []byte("package test\nvar a string\n"))
 	if err != nil {
@@ -1101,6 +1123,28 @@ func TestJSSourceMap(t *testing.T) {
 	}
 }
 
+func TestPreoptimizationAPI(t *testing.T) {
+	r := CheckPreoptimizationCache("test.js")
+	if !r.Success {
+		t.Fatal("expected success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected results to be non-nil")
+	}
+	if r.IsExcluded {
+		t.Fatal("expected IsExcluded to be false")
+	}
+	if r.IsBinary {
+		t.Fatal("expected IsBinary to be false")
+	}
+	if r.IsLarge {
+		t.Fatal("expected IsLarge to be false")
+	}
+	if r.Result.Language.Name != "JavaScript" {
+		t.Fatalf("expected r.Result.Language.Name to be JavaScript, was %v", r.Result.Language.Name)
+	}
+}
+
 func TestAddCustomExtensionRule(t *testing.T) {
 	r, err := GetLanguageDetails(context.Background(), "foo.jeff", []byte("var a = 1\n"))
 	if err != nil {
@@ -1289,5 +1333,37 @@ func BenchmarkLinguist(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+func TestExplicitPreoptimizationCache(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "foo.js", []byte("a = 'bar'"), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Success == false {
+		t.Fatal("expected result.success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
+	}
+	if !r.IsCached {
+		t.Fatal("expected IsCached to be true")
+	}
+}
+
+func TestSkipPreoptimizationCache(t *testing.T) {
+	r, err := GetLanguageDetails(context.Background(), "foo.js", []byte("a = 'bar'"), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Success == false {
+		t.Fatal("expected result.success to be true")
+	}
+	if r.Result == nil {
+		t.Fatal("expected a result but was nil")
+	}
+	if r.IsCached {
+		t.Fatal("expected IsCached to be false")
 	}
 }

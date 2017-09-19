@@ -80,6 +80,7 @@ type Result struct {
 	IsBinary   bool       `json:"binary"`
 	IsLarge    bool       `json:"large"`
 	IsExcluded bool       `json:"excluded"`
+	IsCached   bool       `json:"cached"`
 }
 
 // LResult is the result that comes back from linguist
@@ -238,7 +239,8 @@ func preoptimizeInit() {
 	}
 }
 
-func checkPreoptimizationCache(filename string) Result {
+// CheckPreoptimizationCache will return a potential Result for a filename match based on the preoptimization cache
+func CheckPreoptimizationCache(filename string) Result {
 	mutex.RLock()
 	for _, p := range preoptimizations {
 		var matched int
@@ -253,7 +255,8 @@ func checkPreoptimizationCache(filename string) Result {
 			// make a copy so that the result can't be mutated
 			l := Language(*p.Result.Result.Language)
 			result := Result{
-				Success: true,
+				Success:  true,
+				IsCached: true,
 				Result: &Detection{
 					Path:                   filename,
 					Type:                   p.Result.Result.Type,
@@ -287,18 +290,20 @@ func checkPreoptimizationCache(filename string) Result {
 }
 
 // GetLanguageDetails returns the linguist results for a given file
-func GetLanguageDetails(ctx context.Context, filename string, body []byte) (Result, error) {
+func GetLanguageDetails(ctx context.Context, filename string, body []byte, skip ...bool) (Result, error) {
 	if ex, r := isExcluded(filename, body); ex {
 		return *r, nil
 	}
-	if preop := checkPreoptimizationCache(filename); preop.Success {
-		hits := atomic.AddInt32(&cacheHits, 1)
-		// every N hits, resort so that the most popular stays
-		// at the top of the heap for faster access and less popular go to bottom
-		if hits%100 == 0 {
-			resort()
+	if len(skip) == 0 || !skip[0] {
+		if preop := CheckPreoptimizationCache(filename); preop.Success {
+			hits := atomic.AddInt32(&cacheHits, 1)
+			// every N hits, resort so that the most popular stays
+			// at the top of the heap for faster access and less popular go to bottom
+			if hits%100 == 0 {
+				resort()
+			}
+			return preop, nil
 		}
-		return preop, nil
 	}
 	results, err := getLanguageDetails(ctx, filename, body)
 	if results[0].Success {
@@ -334,7 +339,7 @@ func GetLanguageDetailsMultiple(ctx context.Context, files []*File) ([]Result, e
 			results = append(results, *r)
 			continue
 		}
-		if preop := checkPreoptimizationCache(file.filename); preop.Success {
+		if preop := CheckPreoptimizationCache(file.filename); preop.Success {
 			hits := atomic.AddInt32(&cacheHits, 1)
 			// every N hits, resort so that the most popular stays
 			// at the top of the heap for faster access and less popular go to bottom
@@ -358,6 +363,9 @@ func GetLanguageDetailsMultiple(ctx context.Context, files []*File) ([]Result, e
 	for i, result := range r {
 		idx := indexmap[i]
 		results[idx] = result
+		if result.Success {
+			atomic.AddInt32(&cacheMisses, 1)
+		}
 	}
 	return results, nil
 }
@@ -550,9 +558,9 @@ var (
 		NewMatcher("\\.js\\.map$"),     // JS sourcemap
 		NewMatcher("^dist/(.*)\\.js$"), // generated JS files
 	}
-	binaryResult   = &Result{true, "", nil, true, false, true}
-	largeResult    = &Result{true, "", nil, false, true, true}
-	excludedResult = &Result{true, "", nil, false, false, true}
+	binaryResult   = &Result{true, "", nil, true, false, true, false}
+	largeResult    = &Result{true, "", nil, false, true, true, false}
+	excludedResult = &Result{true, "", nil, false, false, true, false}
 )
 
 // AddExcludedRule will add a rule to the exclusions list
