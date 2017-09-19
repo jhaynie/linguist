@@ -330,24 +330,30 @@ type Filereq struct {
 }
 
 // GetLanguageDetailsMultiple returns the linguist results for one or more files
-func GetLanguageDetailsMultiple(ctx context.Context, files []*File) ([]Result, error) {
+func GetLanguageDetailsMultiple(ctx context.Context, files []*File, skipCache ...bool) ([]Result, error) {
 	results := make([]Result, 0)
 	jsonbody := make([]Filereq, 0)
 	indexmap := make(map[int]int)
+	var skip bool
+	if len(skipCache) != 0 && skipCache[0] {
+		skip = true
+	}
 	for i, file := range files {
 		if ex, r := isExcluded(file.filename, file.body); ex {
 			results = append(results, *r)
 			continue
 		}
-		if preop := CheckPreoptimizationCache(file.filename); preop.Success {
-			hits := atomic.AddInt32(&cacheHits, 1)
-			// every N hits, resort so that the most popular stays
-			// at the top of the heap for faster access and less popular go to bottom
-			if hits%100 == 0 {
-				resort()
+		if !skip {
+			if preop := CheckPreoptimizationCache(file.filename); preop.Success {
+				hits := atomic.AddInt32(&cacheHits, 1)
+				// every N hits, resort so that the most popular stays
+				// at the top of the heap for faster access and less popular go to bottom
+				if hits%100 == 0 {
+					resort()
+				}
+				results = append(results, preop)
+				continue
 			}
-			results = append(results, preop)
-			continue
 		}
 		jsonbody = append(jsonbody, Filereq{file.filename, string(file.body)})
 		results = append(results, Result{})

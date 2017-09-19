@@ -884,7 +884,7 @@ func TestIgnoreImage(t *testing.T) {
 
 func TestIgnoreLargeBuffer(t *testing.T) {
 	var buf bytes.Buffer
-	for i := 0; i < maxBufferSize+1; i++ {
+	for i := 0; i < MaxBufferSize+1; i++ {
 		buf.Write([]byte("x"))
 	}
 	r, err := GetLanguageDetails(context.Background(), "foo.js", buf.Bytes())
