@@ -423,10 +423,11 @@ func isLikelyBinary(body []byte) bool {
 	return false
 }
 
-const maxBufferSize = 100000
+// MaxBufferSize is the large size in bytes that a buffer can be before it's considered "large"
+const MaxBufferSize = 100000
 
 func isLargeBuffer(body []byte) bool {
-	return len(body) > maxBufferSize
+	return len(body) > MaxBufferSize
 }
 
 func isFilenameExcluded(name string) bool {
