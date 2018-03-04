@@ -993,8 +993,8 @@ func TestGoVendored(t *testing.T) {
 	if !r.Success {
 		t.Fatal("expected success to be true")
 	}
-	if r.Result == nil {
-		t.Fatal("expected results to not be nil")
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
 	}
 	if !r.IsExcluded {
 		t.Fatal("expected IsExcluded to be true")
@@ -1004,9 +1004,6 @@ func TestGoVendored(t *testing.T) {
 	}
 	if r.IsLarge {
 		t.Fatal("expected IsLarge to be false")
-	}
-	if r.Result.Language.Name != "Go" {
-		t.Fatalf("expected language to be Go, but was %s", r.Result.Language.Name)
 	}
 	r, err = GetLanguageDetails(context.Background(), "Godeps/github.com/jhaynie/foo/foo.go", []byte("package foo\n"))
 	if err != nil {
@@ -1015,8 +1012,8 @@ func TestGoVendored(t *testing.T) {
 	if !r.Success {
 		t.Fatal("expected success to be true")
 	}
-	if r.Result == nil {
-		t.Fatal("expected results to not be nil")
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
 	}
 	if !r.IsExcluded {
 		t.Fatal("expected IsExcluded to be true")
@@ -1026,9 +1023,6 @@ func TestGoVendored(t *testing.T) {
 	}
 	if r.IsLarge {
 		t.Fatal("expected IsLarge to be false")
-	}
-	if r.Result.Language.Name != "Go" {
-		t.Fatalf("expected language to be Go, but was %s", r.Result.Language.Name)
 	}
 }
 
@@ -1040,8 +1034,8 @@ func TestNodeVendored(t *testing.T) {
 	if !r.Success {
 		t.Fatal("expected success to be true")
 	}
-	if r.Result == nil {
-		t.Fatal("expected results to not be nil")
+	if r.Result != nil {
+		t.Fatal("expected results to be nil")
 	}
 	if !r.IsExcluded {
 		t.Fatal("expected IsExcluded to be true")
@@ -1051,9 +1045,6 @@ func TestNodeVendored(t *testing.T) {
 	}
 	if r.IsLarge {
 		t.Fatal("expected IsLarge to be false")
-	}
-	if r.Result.Language.Name != "JavaScript" {
-		t.Fatalf("expected language to be JavaScript, but was %s", r.Result.Language.Name)
 	}
 }
 
@@ -1381,5 +1372,28 @@ func TestPreoptimizationExcluded(t *testing.T) {
 	}
 	if !r.IsExcluded {
 		t.Fatal("expected IsExcluded to be true")
+	}
+}
+
+func TestPreoptimizationExcludedRules(t *testing.T) {
+	for _, name := range []string{
+		"tests/vendor/bundle/ruby/2.0.0/gems/page-object-0.9.2/spec/page-object/platforms/selenium_webdriver/selenium_page_object_spec.rb",
+		"vendor/bundle/ruby/2.2.0/gems/actionpack-4.2.3/lib/action_dispatch/routing.rb",
+		"node_modules/some/test.js",
+		"vendor/github.com/pinpt/worker/main.go",
+	} {
+		r := CheckPreoptimizationCache(name)
+		if r.Success == false {
+			t.Fatal("expected result.success to be true", name)
+		}
+		if r.Result != nil {
+			t.Fatal("expected result to be nil", name)
+		}
+		if r.IsCached {
+			t.Fatal("expected IsCached to be false", name)
+		}
+		if !r.IsExcluded {
+			t.Fatal("expected IsExcluded to be true", name)
+		}
 	}
 }

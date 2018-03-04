@@ -83,6 +83,11 @@ type Result struct {
 	IsCached   bool       `json:"cached"`
 }
 
+// String returns a string representation
+func (r Result) String() string {
+	return fmt.Sprintf("Result<success:%v,message:%v,result:%v,binary:%v,large:%v,excluded:%v,cached:%v>", r.Success, r.Message, r.Result, r.IsBinary, r.IsLarge, r.IsExcluded, r.IsCached)
+}
+
 // LResult is the result that comes back from linguist
 type LResult struct {
 	Success bool        `json:"success"`
@@ -171,6 +176,11 @@ type Match struct {
 	invert bool
 }
 
+// String is the string representation of Match object
+func (m Match) String() string {
+	return fmt.Sprintf("Match<%s,%v>", m.re, m.invert)
+}
+
 // MatchString will return true if the expression matches s
 func (m Match) MatchString(s string) bool {
 	matched := m.re.MatchString(s)
@@ -243,15 +253,15 @@ func preoptimizeInit() {
 func CheckPreoptimizationCache(filename string) Result {
 	mutex.RLock()
 	for _, p := range preoptimizations {
-		var matched int
+		var matched bool
 		for _, matcher := range p.Matchers {
 			if matcher.MatchString(filename) {
-				matched++
+				matched = true
 			} else {
 				break
 			}
 		}
-		if matched == len(p.Matchers) {
+		if matched {
 			ex, r := IsExcluded(filename, nil)
 			if ex {
 				return *r
@@ -534,6 +544,7 @@ var (
 		".babelrc":       true,
 		".jshintrc":      true,
 		".eslintrc":      true,
+		".eslintrc.json": true,
 		".eslintignore":  true,
 		".editorconfig":  true,
 		".flowconfig":    true,
@@ -564,8 +575,12 @@ var (
 		"glide.yaml":                 true,
 		"Gopkg.lock":                 true,
 		"Gopkg.toml":                 true,
+		"rollup.config.js":           true,
+		"appveyor.yml":               true,
 	}
 	excludedRules = []Match{
+		NewMatcher("^(\\.github|\\.vscode)\\/"),
+		NewMatcher("(node_modules|vendor|Godeps)\\/"),
 		NewMatcher("\\.min\\.js$"),     // minimized JS
 		NewMatcher("\\.js\\.map$"),     // JS sourcemap
 		NewMatcher("^dist/(.*)\\.js$"), // generated JS files
