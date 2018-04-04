@@ -14,20 +14,6 @@ go get -u github.com/jhaynie/linguist
 result, err := linguist.GetLanguageDetails(context.Background(), "test.js", []byte("var a = 1"))
 ```
 
-## Environment
-
-Make sure that you set environment variable `PP_LINGUIST_URL` to the url of your linguist server. Defaults to `https://linguist:25032`.
-
-You can also set the authorization token by setting the environment variable `PP_LINGUIST_AUTH` which defaults to `1234`.
-
-## Running Linguist
-
-The easiest way to run linguist is via Docker:
-
-```shell
-docker run -d -p 25032:25032 pinpt/linguist
-```
-
 ## Adding Exclusion Rules
 
 There are a ton of common exclusion rules to exclude certain files based on a number of heuristics built-in. However, you may need to customize the exclusion rules to further refine for your own use case.
@@ -78,3 +64,9 @@ files := []*linguist.File{
 }
 results, err := linguist.GetLanguageDetailsMultiple(context.Background(), files)
 ```
+
+## Vendoring
+
+This library depends on the Golang port of Linguist from https://github.com/generaltso/linguist.  Since this library requires a go build step to train the classifier, we have vendored the built classifier file and checked it in to source.
+
+To build, do a normal checkout of generaltso/linguist and build it locally. Then copy over the files (remember to remove .git, .gitmodules, data/linguist folder and update .gitignore)

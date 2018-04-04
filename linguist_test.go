@@ -719,7 +719,7 @@ func TestLanguageOptimizationsText(t *testing.T) {
 }
 
 func TestLanguageOptimizationsSQL(t *testing.T) {
-	r, err := GetLanguageDetails(context.Background(), "foo.sql", []byte("insert into foo values(1);"))
+	r, err := GetLanguageDetails(context.Background(), "foo.sql", []byte("-- SQL\nCREATE TABLE IF NOT EXISTS `foo` (`id` int(11));\nINSERT INTO `foo` values(1);\n"))
 	if err != nil {
 		t.Fatal(err)
 	}

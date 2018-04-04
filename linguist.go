@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,15 +14,9 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	generaltso "github.com/generaltso/linguist"
 )
-
-var authtoken, linguisturl string
-
-func init() {
-	authtoken = getEnv("PP_LINGUIST_AUTH", "1234")
-	urlprefix := getEnv("PP_LINGUIST_URL", "https://linguist:25032")
-	linguisturl = fmt.Sprintf("%s/detect", urlprefix)
-}
 
 func getEnv(name, def string) string {
 	v := os.Getenv(name)
@@ -222,7 +215,7 @@ func preoptimizeInit() {
 		preoptimize(NewMatcher("\\.css$"), "test.css", ".rule {color:red}", noVendorMatcher)
 		preoptimize(NewMatcher("\\.scss$"), "test.scss", ".rule {color:red}", noVendorMatcher)
 		preoptimize(NewMatcher("\\.(ba|z)?sh$"), "test.sh", "#!/bin/sh\n", noVendorMatcher)
-		preoptimize(NewMatcher("\\.(md|markdown)$"), "test.md", "# Foo\n", noVendorMatcher)
+		preoptimize(NewMatcher("\\.(md|markdown)$"), "test.md", "# Foo\n## Hello\nthis is a markdown file\n", noVendorMatcher)
 		preoptimize(NewMatcher("\\.json5$"), "test.json5", "{a:1}", noVendorMatcher)
 		preoptimize(NewMatcher("\\.jsx$"), "test.jsx", "import a from 'foo'\n", noVendorMatcher)
 		preoptimize(NewMatcher("\\.ts$"), "test.ts", "import a from 'foo'\n", noVendorMatcher)
@@ -238,7 +231,7 @@ func preoptimizeInit() {
 		preoptimize(NewMatcher("\\.xml$"), "test.xml", "<a>foo</a>", noVendorMatcher)
 		preoptimize(NewMatcher("\\.lua$"), "test.lua", "x=0")
 		preoptimize(NewMatcher("\\.txt$"), "test.txt", "hi", noVendorMatcher)
-		preoptimize(NewMatcher("\\.sql$"), "test.sql", "delete from foo", noVendorMatcher)
+		preoptimize(NewMatcher("\\.sql$"), "test.sql", "-- test\ndelete from `foo`;\nCREATE TABLE IF NOT EXISTS `foo` (l int(11));\n", noVendorMatcher)
 		preoptimize(NewMatcher("\\.coffee$"), "test.coffee", "a = 1", noVendorMatcher)
 		preoptimize(NewMatcher("\\.properties$"), "test.properties", "a=1", noVendorMatcher)
 		preoptimize(NewMatcher("Dockerfile(\\.*)$"), "Dockerfile", "FROM nodejs\n")
@@ -339,8 +332,8 @@ func NewFile(filename string, body []byte) *File {
 
 // Filereq is used internally
 type Filereq struct {
-	Name string `json:"name"`
-	Body string `json:"body"`
+	Name string
+	Body []byte
 }
 
 // GetLanguageDetailsMultiple returns the linguist results for one or more files
@@ -369,71 +362,21 @@ func GetLanguageDetailsMultiple(ctx context.Context, files []*File, skipCache ..
 				continue
 			}
 		}
-		jsonbody = append(jsonbody, Filereq{file.filename, string(file.body)})
+		jsonbody = append(jsonbody, Filereq{file.filename, file.body})
 		results = append(results, Result{})
 		indexmap[len(jsonbody)-1] = i
 	}
 	if len(jsonbody) == 0 {
 		return results, nil
 	}
-	r, err := attempt(ctx, stringify(jsonbody), linguisturl, authtoken, 1)
-	if err != nil {
-		return nil, err
-	}
-	for i, result := range r {
-		idx := indexmap[i]
-		results[idx] = result
-		if result.Success {
-			atomic.AddInt32(&cacheMisses, 1)
+	for _, j := range jsonbody {
+		r, err := getLanguageDetails(ctx, j.Name, j.Body)
+		if err != nil {
+			return nil, err
 		}
+		results = append(results, r...)
 	}
 	return results, nil
-}
-
-func attempt(ctx context.Context, jsonbuf string, url string, authtoken string, attempts int) ([]Result, error) {
-	if attempts > 10 {
-		return []Result{noResult}, fmt.Errorf("error attempting to load %s after %d attempts", url, attempts)
-	}
-	_req, err := http.NewRequest("POST", url, strings.NewReader(jsonbuf))
-	if err != nil {
-		return []Result{noResult}, err
-	}
-	req := _req.WithContext(ctx)
-	if authtoken != "" {
-		req.Header.Set("Authorization", authtoken)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		es := err.Error()
-		if strings.Contains(es, "connection reset by peer") || strings.Contains(es, "EOF") {
-			time.Sleep(time.Millisecond * time.Duration(50*attempts+1))
-			return attempt(ctx, jsonbuf, url, authtoken, attempts+1)
-		}
-		return []Result{noResult}, err
-	}
-	defer resp.Body.Close()
-	result := LResult{}
-	d := json.NewDecoder(resp.Body)
-	d.UseNumber() // prevent numbers from getting converted
-	err = d.Decode(&result)
-	if err != nil {
-		return []Result{noResult}, err
-	}
-	resp.Body.Close()
-	if result.Success {
-		if len(result.Results) > 0 {
-			results := make([]Result, 0)
-			for _, r := range result.Results {
-				// make a copy so that the result can't be mutated
-				detection := Detection(r)
-				excluded := detection.IsBinary || detection.IsVendored || detection.IsGenerated
-				results = append(results, Result{Success: true, Message: result.Message, Result: &detection, IsBinary: detection.IsBinary, IsLarge: detection.IsLarge, IsExcluded: excluded})
-			}
-			return results, nil
-		}
-		return []Result{Result{Success: true, Message: result.Message, IsExcluded: true}}, nil
-	}
-	return []Result{noResult}, errors.New(result.Message)
 }
 
 // IsLikelyBinary returns true if the body is likely a binary buffer
@@ -449,7 +392,7 @@ func IsLikelyBinary(body []byte) bool {
 			return true
 		}
 	}
-	return false
+	return generaltso.IsBinary(body)
 }
 
 // MaxBufferSize is the large size in bytes that a buffer can be before it's considered "large"
@@ -473,6 +416,9 @@ func isFilenameExcluded(name string) bool {
 }
 
 var (
+	languageOverrides = map[string]map[string]string{
+		"PLpgSQL": map[string]string{".sql": "SQL"},
+	}
 	excludeExtensions = map[string]bool{
 		".swp":           true,
 		".DS_Store":      true,
@@ -643,9 +589,37 @@ func IsExcluded(filename string, body []byte) (bool, *Result) {
 }
 
 func getLanguageDetails(ctx context.Context, filename string, body []byte) ([]Result, error) {
-	jsonbody := []interface{}{map[string]string{
-		"name": filename,
-		"body": string(body),
-	}}
-	return attempt(ctx, stringify(jsonbody), linguisturl, authtoken, 1)
+	hints := generaltso.LanguageHints(filename)
+	language := generaltso.LanguageByContents(body, hints)
+	// see if we have any language rule overrides
+	kv := languageOverrides[language]
+	if kv != nil {
+		l := kv[filepath.Ext(filename)]
+		if l != "" {
+			language = l
+		}
+	}
+	binary := IsLikelyBinary(body)
+	vendored := generaltso.IsVendored(filename)
+	generated := false
+	large := IsLargeBuffer(len(body))
+	excluded := binary || vendored || generated
+	result := Result{
+		Success:    true,
+		IsBinary:   binary,
+		IsExcluded: excluded,
+		IsLarge:    large,
+		Result: &Detection{
+			Path: filename,
+			Type: "text",
+			Language: &Language{
+				Name: language,
+			},
+			IsLarge:     large,
+			IsBinary:    binary,
+			IsGenerated: generated,
+			IsVendored:  vendored,
+		},
+	}
+	return []Result{result}, nil
 }
