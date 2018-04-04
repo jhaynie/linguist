@@ -7,23 +7,9 @@ jobs:
     docker:
       # specify the version
       - image: circleci/golang:1.8
-      - image: pinpt/linguist
 
     working_directory: /go/src/github.com/jhaynie/linguist
 
-    environment:
-      PP_LINGUIST_URL: https://localhost:25032
-
     steps:
       - checkout
-      - run:
-          name: Waiting for Linguist to be ready
-          command: |
-            for i in `seq 1 60`;
-            do
-              nc -z localhost 25032 && echo Success && exit 0
-              echo -n .
-              sleep 1
-            done
-            echo Failed waiting for Linguist && exit 1
       - run: go test -v -bench=. -test.benchmem
