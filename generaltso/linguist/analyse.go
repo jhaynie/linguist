@@ -5,8 +5,8 @@ import (
 	"log"
 	"math"
 
-	"github.com/generaltso/linguist/data"
-	"github.com/generaltso/linguist/tokenizer"
+	"github.com/jhaynie/linguist/generaltso/linguist/data"
+	"github.com/jhaynie/linguist/generaltso/linguist/tokenizer"
 	"github.com/jbrukh/bayesian"
 )
 

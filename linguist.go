@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	generaltso "github.com/generaltso/linguist"
+	generaltso "github.com/jhaynie/linguist/generaltso/linguist"
 )
 
 func getEnv(name, def string) string {
