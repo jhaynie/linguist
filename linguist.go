@@ -341,7 +341,6 @@ type Filereq struct {
 func GetLanguageDetailsMultiple(ctx context.Context, files []*File, skipCache ...bool) ([]Result, error) {
 	results := make([]Result, 0)
 	jsonbody := make([]Filereq, 0)
-	indexmap := make(map[int]int)
 	var skip bool
 	if len(skipCache) != 0 && skipCache[0] {
 		skip = true
@@ -364,19 +363,17 @@ func GetLanguageDetailsMultiple(ctx context.Context, files []*File, skipCache ..
 			}
 		}
 		jsonbody = append(jsonbody, Filereq{file.filename, file.body, i})
-		indexmap[len(jsonbody)-1] = i
 		results = append(results, Result{})
 	}
 	if len(jsonbody) == 0 {
 		return results, nil
 	}
-	for i, j := range jsonbody {
+	for _, j := range jsonbody {
 		r, err := getLanguageDetails(ctx, j.Name, j.Body)
 		if err != nil {
 			return nil, err
 		}
-		v := indexmap[i]
-		results[v] = r
+		results[j.Index] = r
 	}
 	return results, nil
 }
