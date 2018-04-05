@@ -110,11 +110,11 @@ var (
 )
 
 func preoptimize(re Match, filename string, body string, rules ...Match) {
-	results, err := getLanguageDetails(context.Background(), filename, []byte(body))
-	if err == nil && results[0].Success {
+	result, err := getLanguageDetails(context.Background(), filename, []byte(body))
+	if err == nil && result.Success {
 		p := &preoptimization{
 			Matchers: []Match{re},
-			Result:   results[0],
+			Result:   result,
 		}
 		if len(rules) > 0 {
 			for _, r := range rules {
@@ -312,11 +312,11 @@ func GetLanguageDetails(ctx context.Context, filename string, body []byte, skip 
 			return preop, nil
 		}
 	}
-	results, err := getLanguageDetails(ctx, filename, body)
-	if results[0].Success {
+	result, err := getLanguageDetails(ctx, filename, body)
+	if result.Success {
 		atomic.AddInt32(&cacheMisses, 1)
 	}
-	return results[0], err
+	return result, err
 }
 
 // File is a wrapper around a file name and body
@@ -332,8 +332,9 @@ func NewFile(filename string, body []byte) *File {
 
 // Filereq is used internally
 type Filereq struct {
-	Name string
-	Body []byte
+	Name  string
+	Body  []byte
+	Index int
 }
 
 // GetLanguageDetailsMultiple returns the linguist results for one or more files
@@ -362,19 +363,20 @@ func GetLanguageDetailsMultiple(ctx context.Context, files []*File, skipCache ..
 				continue
 			}
 		}
-		jsonbody = append(jsonbody, Filereq{file.filename, file.body})
-		results = append(results, Result{})
+		jsonbody = append(jsonbody, Filereq{file.filename, file.body, i})
 		indexmap[len(jsonbody)-1] = i
+		results = append(results, Result{})
 	}
 	if len(jsonbody) == 0 {
 		return results, nil
 	}
-	for _, j := range jsonbody {
+	for i, j := range jsonbody {
 		r, err := getLanguageDetails(ctx, j.Name, j.Body)
 		if err != nil {
 			return nil, err
 		}
-		results = append(results, r...)
+		v := indexmap[i]
+		results[v] = r
 	}
 	return results, nil
 }
@@ -588,7 +590,7 @@ func IsExcluded(filename string, body []byte) (bool, *Result) {
 	return false, nil
 }
 
-func getLanguageDetails(ctx context.Context, filename string, body []byte) ([]Result, error) {
+func getLanguageDetails(ctx context.Context, filename string, body []byte) (Result, error) {
 	hints := generaltso.LanguageHints(filename)
 	language := generaltso.LanguageByContents(body, hints)
 	// see if we have any language rule overrides
@@ -604,7 +606,7 @@ func getLanguageDetails(ctx context.Context, filename string, body []byte) ([]Re
 	generated := false
 	large := IsLargeBuffer(len(body))
 	excluded := binary || vendored || generated
-	result := Result{
+	return Result{
 		Success:    true,
 		IsBinary:   binary,
 		IsExcluded: excluded,
@@ -620,6 +622,5 @@ func getLanguageDetails(ctx context.Context, filename string, body []byte) ([]Re
 			IsGenerated: generated,
 			IsVendored:  vendored,
 		},
-	}
-	return []Result{result}, nil
+	}, nil
 }
