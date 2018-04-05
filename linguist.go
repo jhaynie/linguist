@@ -410,7 +410,8 @@ func isFilenameExcluded(name string) bool {
 
 var (
 	languageOverrides = map[string]map[string]string{
-		"PLpgSQL": map[string]string{".sql": "SQL"},
+		"PLpgSQL":                 map[string]string{".sql": "SQL"},
+		"GCC Machine Description": map[string]string{".md": "Markdown"},
 	}
 	excludeExtensions = map[string]bool{
 		".swp":           true,
