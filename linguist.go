@@ -2,7 +2,6 @@ package linguist
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	generaltso "github.com/jhaynie/linguist/generaltso/linguist"
 )
@@ -99,14 +97,9 @@ var (
 	cacheMisses      int32
 	cacheHits        int32
 	preoptimized     bool
-	transport        = &http.Transport{
-		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
-		TLSHandshakeTimeout: 5 * time.Second,
-		MaxIdleConnsPerHost: 50,
-	}
-	client   = &http.Client{Transport: transport, Timeout: time.Second * 30}
-	mutex    = sync.RWMutex{}
-	noResult = Result{}
+	mutex            sync.RWMutex
+	generaltsoMutex  sync.Mutex
+	noResult         = Result{}
 )
 
 func preoptimize(re Match, filename string, body string, rules ...Match) {
@@ -257,6 +250,7 @@ func CheckPreoptimizationCache(filename string) Result {
 		if matched {
 			ex, r := IsExcluded(filename, nil)
 			if ex {
+				mutex.RUnlock()
 				return *r
 			}
 			// make a copy so that the result can't be mutated
@@ -588,8 +582,12 @@ func IsExcluded(filename string, body []byte) (bool, *Result) {
 }
 
 func getLanguageDetails(ctx context.Context, filename string, body []byte) (Result, error) {
+	// hold lock since generaltso isn't thread safe and uses shared maps
+	generaltsoMutex.Lock()
 	hints := generaltso.LanguageHints(filename)
 	language := generaltso.LanguageByContents(body, hints)
+	vendored := generaltso.IsVendored(filename)
+	generaltsoMutex.Unlock()
 	// see if we have any language rule overrides
 	kv := languageOverrides[language]
 	if kv != nil {
@@ -599,7 +597,6 @@ func getLanguageDetails(ctx context.Context, filename string, body []byte) (Resu
 		}
 	}
 	binary := IsLikelyBinary(body)
-	vendored := generaltso.IsVendored(filename)
 	generated := false
 	large := IsLargeBuffer(len(body))
 	excluded := binary || vendored || generated

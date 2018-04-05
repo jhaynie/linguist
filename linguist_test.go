@@ -7,6 +7,8 @@ import (
 	"os"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
@@ -1396,4 +1398,18 @@ func TestPreoptimizationExcludedRules(t *testing.T) {
 			t.Fatal("expected IsExcluded to be true", name)
 		}
 	}
+}
+
+func TestConcurrencyLock(t *testing.T) {
+	assert := assert.New(t)
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := GetLanguageDetails(context.Background(), "test/foo.js", nil)
+			assert.NoError(err)
+		}()
+	}
+	wg.Wait()
 }
